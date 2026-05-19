@@ -74,11 +74,11 @@ export default function AdminPage() {
         body: JSON.stringify({ password }),
       });
       if (res.status === 401) { setError('Incorrect password.'); setLoading(false); return; }
-      if (!res.ok) throw new Error('Server error');
       const data = await res.json();
+      if (!res.ok) { setError(data.error ?? 'Server error'); setLoading(false); return; }
       setStats(data);
-    } catch {
-      setError('Failed to load data. Check server configuration.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Network error — check console');
     }
     setLoading(false);
   };
