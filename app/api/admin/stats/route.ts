@@ -73,7 +73,8 @@ export async function POST(req: NextRequest) {
       payments: payments.slice(0, 200).map(({ createdMs: _, ...p }) => p),
     });
   } catch (err) {
-    console.error('admin/stats error:', err);
-    return NextResponse.json({ error: 'Failed to load stats' }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('admin/stats error:', msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
