@@ -22,7 +22,7 @@ export default function Navbar() {
             Portfolio
           </a>
           <a
-            href="https://apps.apple.com/app/formcraft"
+            href="https://formcraft-ai-39547.web.app"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-[#B8860B] hover:bg-[#a07609] text-white px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
