@@ -48,6 +48,7 @@ export default function BuildPage({ params }: Props) {
     const html = generateHTML(doc, formData);
     sessionStorage.setItem('formcraft_html', html);
     sessionStorage.setItem('formcraft_docName', doc.name);
+    sessionStorage.setItem('formcraft_docId', `${doc.id}-${Date.now()}`);
     router.push('/preview');
   };
 
