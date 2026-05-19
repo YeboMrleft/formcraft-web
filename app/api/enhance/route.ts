@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const PROXY_BASE = 'https://formcraft-ai-39547.web.app';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,28 +11,34 @@ export async function POST(req: NextRequest) {
       .map(([k, v]) => `${k}: ${v}`)
       .join('\n');
 
-    const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: `You are helping generate a professional South African ${docType}.
+    const prompt = `You are helping generate a professional South African ${docType}.
 The user has filled in these fields:
 ${filledFields}
 
-Return a JSON object with enhanced versions of the TEXT fields (not dates, numbers, or selects).
-Improve grammar, professionalism, and completeness of text fields like descriptions, job duties,
-profile summaries, and clause text. Keep the SAME field keys. Only include fields you improved.
-Respond with only valid JSON, no markdown.`,
-        },
-      ],
+Return a JSON object with enhanced versions of the TEXT fields only (not dates, numbers, or selects).
+Improve grammar, professionalism, and completeness. Keep the SAME field keys. Only include fields you improved.
+Respond with ONLY valid JSON — no markdown, no explanation.`;
+
+    const res = await fetch(`${PROXY_BASE}/ai/perplexity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.1-sonar-small-128k-chat',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 1024,
+        temperature: 0.3,
+      }),
     });
 
-    const raw = message.content[0].type === 'text' ? message.content[0].text : '{}';
+    if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
+
+    const data = await res.json();
+    const raw: string = data?.choices?.[0]?.message?.content ?? '{}';
+
     let enhanced: Record<string, string> = {};
     try {
-      enhanced = JSON.parse(raw);
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      enhanced = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
     } catch {
       enhanced = {};
     }
